@@ -1,0 +1,28 @@
+.products-container {
+    margin-top: 10px;
+  }
+  
+  .products-container select,
+  .products-container input {
+    margin: 5px 0;
+    width: calc(100% - 10px);
+    padding: 8px;
+  }
+  
+  button.add-item,
+  button.remove-item {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin-top: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button.add-item:hover,
+  button.remove-item:hover {
+    background-color: #218838;
+  }
+  

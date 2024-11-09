@@ -1,0 +1,12 @@
+.total-sale {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    color: #555;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f1f1f1;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+  
