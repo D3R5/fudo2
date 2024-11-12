@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import './css/SaleForm.css';
-
+import "./css/SaleForm.css";
 
 const SaleForm = ({ onSaleCreated }) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("efectivo");
   const [items, setItems] = useState([
-    { product_id: "", quantity: 1, price_at_time: 0 },
+    { product_id: "", quantity: "", price_at_time: "" },
   ]);
   const [products, setProducts] = useState([]);
 
-  // Obtener todos los productos al cargar el componente
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/products")
@@ -19,7 +17,6 @@ const SaleForm = ({ onSaleCreated }) => {
       .catch((error) => console.error(error));
   }, []);
 
-  // Recalcular el total automáticamente cada vez que cambien los items
   useEffect(() => {
     const newTotal = items.reduce((sum, item) => {
       const price = parseFloat(item.price_at_time) || 0;
@@ -29,22 +26,38 @@ const SaleForm = ({ onSaleCreated }) => {
     setTotalAmount(newTotal);
   }, [items]);
 
+  useEffect(() => {
+    if (paymentMethod !== "efectivo") {
+      setItems((prevItems) =>
+        prevItems.map((item) => {
+          const product = products.find((p) => p.id === item.product_id);
+          return product ? { ...item, price_at_time: product.price } : item;
+        })
+      );
+    }
+  }, [paymentMethod, products]);
+
   const handleItemChange = (index, field, value) => {
     const newItems = [...items];
 
     if (field === "price_at_time") {
-      // Guardamos el valor como texto temporalmente para evitar reiniciar el cursor
-      newItems[index][field] = value ? value : "";
+      newItems[index][field] = value || "";
     } else {
-      // Parseamos solo la cantidad, si es necesario
       newItems[index][field] = value ? parseInt(value) || 0 : 0;
+    }
+
+    if (field === "product_id" && paymentMethod !== "efectivo") {
+      const selectedProduct = products.find((product) => product.id === value);
+      newItems[index].price_at_time = selectedProduct
+        ? selectedProduct.price
+        : 0;
     }
 
     setItems(newItems);
   };
 
   const addItem = () => {
-    setItems([...items, { product_id: "", quantity: 1, price_at_time: 0 }]);
+    setItems([...items, { product_id: "", quantity: "", price_at_time: "" }]);
   };
 
   const removeItem = (index) => {
@@ -56,10 +69,18 @@ const SaleForm = ({ onSaleCreated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validar el método de pago
-    const validPaymentMethods = ['efectivo', 'tarjeta_debito', 'tarjeta_credito', 'transferencia'];
+    const validPaymentMethods = [
+      "efectivo",
+      "tarjeta_debito",
+      "tarjeta_credito",
+      "transferencia",
+    ];
     if (!validPaymentMethods.includes(paymentMethod)) {
-      alert(`Método de pago inválido. Los métodos permitidos son: ${validPaymentMethods.join(', ')}`);
+      alert(
+        `Método de pago inválido. Los métodos permitidos son: ${validPaymentMethods.join(
+          ", "
+        )}`
+      );
       return;
     }
 
@@ -73,14 +94,19 @@ const SaleForm = ({ onSaleCreated }) => {
     };
 
     try {
-      const response = await axios.post("http://localhost:5000/api/sales", saleData);
+      const response = await axios.post(
+        "http://localhost:5000/api/sales",
+        saleData
+      );
       alert("Venta creada exitosamente");
       onSaleCreated(response.data);
     } catch (error) {
-      console.error("Error:", error.response ? error.response.data : error.message);
+      console.error(
+        "Error:",
+        error.response ? error.response.data : error.message
+      );
       alert(error.response?.data?.error || "Error al crear la venta");
     }
-    
   };
 
   return (
@@ -115,15 +141,17 @@ const SaleForm = ({ onSaleCreated }) => {
             required
           />
 
-          <input
-            type="number"
-            placeholder="Precio"
-            value={item.price_at_time}
-            onChange={(e) =>
-              handleItemChange(index, "price_at_time", e.target.value)
-            }
-            required
-          />
+          {paymentMethod === "efectivo" && (
+            <input
+              type="number"
+              placeholder="Precio"
+              value={item.price_at_time}
+              onChange={(e) =>
+                handleItemChange(index, "price_at_time", e.target.value)
+              }
+              required
+            />
+          )}
 
           <button type="button" onClick={() => removeItem(index)}>
             Eliminar
@@ -147,7 +175,7 @@ const SaleForm = ({ onSaleCreated }) => {
         <option value="tarjeta_credito">Tarjeta de Crédito</option>
         <option value="transferencia">Transferencia</option>
       </select>
-      
+
       <h3>Resumen de la Venta</h3>
       <label>Total de la venta:</label>
       <input type="number" value={totalAmount} readOnly />
