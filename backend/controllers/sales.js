@@ -63,17 +63,7 @@ const createSale = async (req, res) => {
   }
 };
 
-const getDailyTotal = async (req, res) => {
-  try {
-    const total = await Sale.getDailyTotal();
-    res.json({ total_daily: total });
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ error: "Error al obtener el total diario de ventas" });
-  }
-};
+
 
 const getTopSellingProducts = async (req, res) => {
   try {
@@ -92,10 +82,48 @@ const getTopSellingProducts = async (req, res) => {
       .json({ error: "Error al obtener los productos más vendidos" });
   }
 };
+const getDailyTotal = async (req, res) => {
+  try {
+    const total = await Sale.getDailyTotal();
+    await Sale.saveDailyTotal(total); // Guardar total diario en la tabla
+    res.json({ total_daily: total });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener o guardar el total diario de ventas" });
+  }
+};
+
+const getDailyTotalsHistory = async (req, res) => {
+  try {
+    const history = await Sale.getDailyTotalsHistory();
+    res.json(history);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener el historial de totales diarios" });
+  }
+};
+
+const getProductsSoldByDate = async (req, res) => {
+  const { date } = req.query;
+  if (!date) {
+    return res.status(400).json({ error: "Debe proporcionar una fecha" });
+  }
+
+  try {
+    const productsSold = await Sale.getProductsSoldByDate(date);
+    res.json(productsSold);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al obtener los productos vendidos" });
+  }
+};
+
 
 module.exports = {
   getAllSales,
   createSale,
   getDailyTotal,
+  getDailyTotalsHistory,
   getTopSellingProducts,
+  getProductsSoldByDate
 };

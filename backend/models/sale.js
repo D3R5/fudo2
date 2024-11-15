@@ -90,6 +90,37 @@ const Sale = {
         `);
     return res.rows;
   },
+  saveDailyTotal: async (total) => {
+    const today = new Date().toISOString().split("T")[0];
+    await db.query(
+      `INSERT INTO daily_totals (total, date)
+       VALUES ($1, $2)
+       ON CONFLICT (date)
+       DO UPDATE SET total = EXCLUDED.total`,
+      [total, today]
+    );
+  },
+
+  getDailyTotalsHistory: async () => {
+    const res = await db.query(
+      "SELECT date, total FROM daily_totals ORDER BY date DESC"
+    );
+    return res.rows;
+  },
+
+  getProductsSoldByDate: async (date) => {
+    const res = await db.query(
+      `SELECT si.product_id, p.name, SUM(si.quantity) AS total_quantity, SUM(si.subtotal) AS total_revenue
+       FROM sale_items si
+       JOIN products p ON si.product_id = p.id
+       JOIN sales s ON si.sale_id = s.id
+       WHERE DATE(s.created_at) = $1
+       GROUP BY si.product_id, p.name
+       ORDER BY total_quantity DESC`,
+      [date]
+    );
+    return res.rows;
+  },
 };
 
 module.exports = Sale;

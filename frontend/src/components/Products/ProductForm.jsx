@@ -23,15 +23,20 @@ const ProductForm = ({ product = {}, onSuccess }) => {
     const apiCall = product.id
       ? api.put(`/products/${product.id}`, formData)
       : api.post("/products", formData);
-
+  
     apiCall
       .then(() => {
         alert("Producto guardado con éxito");
         if (onSuccess) onSuccess();
       })
-      .catch((error) => console.error("Error al guardar producto:", error));
+      .catch((error) => {
+        if (error.response && error.response.data.error) {
+          alert(error.response.data.error); // Muestra el error del backend
+        } else {
+          console.error("Error al guardar producto:", error);
+        }
+      });
   };
-
   return (
     <form onSubmit={handleSubmit}>
       <input

@@ -3,11 +3,12 @@ DROP TABLE IF EXISTS sale_items;
 DROP TABLE IF EXISTS sales;
 DROP TYPE IF EXISTS payment_method;
 DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS daily_totals;
 
 -- Crear tabla de productos
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL UNIQUE, -- Restricción única para evitar nombres duplicados
     description TEXT,
     price DECIMAL(10,2) NOT NULL,
     stock INTEGER NOT NULL DEFAULT 0,
@@ -39,6 +40,14 @@ CREATE TABLE sale_items (
     quantity INTEGER NOT NULL,
     price_at_time DECIMAL(10,2) NOT NULL,
     subtotal DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Crear tabla para registrar los totales diarios
+CREATE TABLE daily_totals (
+    id SERIAL PRIMARY KEY,
+    total DECIMAL(10,2) NOT NULL,
+    date DATE NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

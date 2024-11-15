@@ -36,6 +36,10 @@ const Product = {
     );
     return res.rows[0];
   },
+  existsByName: async (name) => {
+    const res = await db.query("SELECT 1 FROM products WHERE name = $1", [name]);
+    return res.rowCount > 0; // Devuelve true si existe, false si no
+  },
 };
 
 module.exports = Product;

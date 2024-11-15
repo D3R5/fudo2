@@ -12,8 +12,18 @@ const getProductById = async (req, res) => {
 };
 
 const createProduct = async (req, res) => {
-  const newProduct = await Product.create(req.body);
-  res.status(201).json(newProduct);
+  const { name, description, price, stock } = req.body;
+
+  try {
+    const newProduct = await Product.create({ name, description, price, stock });
+    res.status(201).json(newProduct);
+  } catch (error) {
+    if (error.code === '23505') { // Código de error para violación de restricción única en PostgreSQL
+      res.status(400).json({ error: "El nombre del producto ya está en uso." });
+    } else {
+      res.status(500).json({ error: "Error al crear el producto." });
+    }
+  }
 };
 
 const updateProduct = async (req, res) => {
