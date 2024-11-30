@@ -144,7 +144,7 @@ const SaleForm = ({ onSaleCreated }) => {
           {paymentMethod === "efectivo" && (
             <input
               type="number"
-              placeholder="Precio"
+              placeholder="Monto pagado"
               value={item.price_at_time}
               onChange={(e) =>
                 handleItemChange(index, "price_at_time", e.target.value)

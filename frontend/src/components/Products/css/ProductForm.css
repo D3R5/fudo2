@@ -1,43 +1,59 @@
+/* Estilos generales del formulario */
 form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  
-  form label {
-    font-weight: bold;
-    color: #555;
-  }
-  
-  form input,
-  form select,
-  form button {
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    transition: border-color 0.3s;
-  }
-  
-  form input:focus,
-  form select:focus {
-    border-color: #007bff;
-  }
-  
-  form input[type="number"] {
-    width: 100%;
-  }
-  
-  form button[type="submit"] {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  form button[type="submit"]:hover {
-    background-color: #0056b3;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra los elementos horizontalmente */
+  gap: 1.5rem; /* Espaciado entre elementos */
+  width: 100%;
+  max-width: 400px; /* Ancho máximo */
+  margin: 2rem auto; /* Centra el formulario en la página */
+  padding: 2rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9; /* Fondo claro */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  font-family: 'Arial', sans-serif;
+}
+
+/* Estilo para los campos de entrada */
+input {
+  width: 100%; /* Ajusta al ancho del contenedor */
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: #fff;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto de enfoque en los campos */
+input:focus {
+  border-color: #4b2e2e; /* Bordes color café oscuro */
+  box-shadow: 0 0 5px rgba(75, 46, 46, 0.5); /* Sombra al hacer foco */
+  outline: none;
+}
+
+/* Botón de envío */
+button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #4b2e2e; /* Café oscuro */
+  color: #f4e1d2; /* Color crema */
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Botón en hover */
+button:hover {
+  background-color: #3a2323; /* Café más oscuro */
+}
+
+/* Mensajes de error o advertencia */
+.alert {
+  color: #ff4c4c; /* Rojo para errores */
+  font-size: 0.9rem;
+  text-align: center;
+}

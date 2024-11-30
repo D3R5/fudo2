@@ -20,6 +20,12 @@ const ProductForm = ({ product = {}, onSuccess }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+  
+    if (formData.price < 0 || formData.stock < 0) {
+      alert("El precio y el stock deben ser valores positivos.");
+      return;
+    }
+  
     const apiCall = product.id
       ? api.put(`/products/${product.id}`, formData)
       : api.post("/products", formData);
@@ -31,12 +37,13 @@ const ProductForm = ({ product = {}, onSuccess }) => {
       })
       .catch((error) => {
         if (error.response && error.response.data.error) {
-          alert(error.response.data.error); // Muestra el error del backend
+          alert(error.response.data.error);
         } else {
           console.error("Error al guardar producto:", error);
         }
       });
   };
+  
   return (
     <form onSubmit={handleSubmit}>
       <input

@@ -1,3 +1,4 @@
+//controller sale.js
 const Sale = require("../models/sale");
 const Product = require("../models/product");
 
@@ -19,22 +20,21 @@ const createSale = async (req, res) => {
     for (const item of saleData.items) {
       const product = await Product.getById(item.product_id);
       if (!product || product.stock < item.quantity) {
-        return res
-          .status(400)
-          .json({
-            error: `Stock insuficiente para el producto: ${
-              product ? product.name : "ID " + item.product_id
-            }`,
-          });
+        return res.status(400).json({
+          error: `Stock insuficiente para el producto: ${
+            product ? product.name : "ID " + item.product_id
+          }`,
+        });
       }
 
-      // Verificar que el precio en la venta coincida con el precio actual del producto
-      if (item.price_at_time !== product.price) {
-        return res
-          .status(400)
-          .json({
-            error: `Precio incorrecto para el producto: ${product.name}`,
-          });
+      // Convertir los precios a enteros multiplicando por 100 y compararlos
+      const enteredPrice = Math.round(item.price_at_time * 100);
+      const actualPrice = Math.round(product.price * 100);
+
+      if (enteredPrice !== actualPrice) {
+        return res.status(400).json({
+          error: `Precio incorrecto para el producto: ${product.name}`,
+        });
       }
     }
 
@@ -62,6 +62,7 @@ const createSale = async (req, res) => {
     res.status(500).json({ error: "Error al crear la venta" });
   }
 };
+
 
 
 
@@ -93,6 +94,17 @@ const getDailyTotal = async (req, res) => {
   }
 };
 
+// Ruta para hacer el arqueo de caja
+const performCashRegister = async (req, res) => {
+  try {
+    await Sale.saveCashRegister(); // Ejecutar el arqueo de caja
+    res.status(200).json({ message: "Arqueo de caja realizado con éxito." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al realizar el arqueo de caja" });
+  }
+};
+
 const getDailyTotalsHistory = async (req, res) => {
   try {
     const history = await Sale.getDailyTotalsHistory();
@@ -117,6 +129,20 @@ const getProductsSoldByDate = async (req, res) => {
     res.status(500).json({ error: "Error al obtener los productos vendidos" });
   }
 };
+const getDailyTotalsByPaymentMethod = async (req, res) => {
+  const { date } = req.query;
+  if (!date) {
+      return res.status(400).json({ error: "Debe proporcionar una fecha" });
+  }
+
+  try {
+      const paymentMethods = await Sale.getDailyTotalsByPaymentMethod(date);
+      res.json(paymentMethods);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error al obtener el desglose por medio de pago" });
+  }
+};
 
 
 module.exports = {
@@ -125,5 +151,7 @@ module.exports = {
   getDailyTotal,
   getDailyTotalsHistory,
   getTopSellingProducts,
-  getProductsSoldByDate
+  performCashRegister,
+  getProductsSoldByDate,
+  getDailyTotalsByPaymentMethod
 };

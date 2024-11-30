@@ -52,6 +52,14 @@ const ProductList = () => {
   };
 
   const handleSave = () => {
+    const { price, stock } = formData;
+
+    // Validación: precio y stock deben ser positivos
+    if (price < 0 || stock < 0) {
+      alert("El precio y el stock deben ser valores positivos.");
+      return;
+    }
+
     api
       .put(`/products/${editingProduct}`, formData)
       .then(() => {
@@ -78,12 +86,16 @@ const ProductList = () => {
                 />
                 <input
                   name="price"
+                  type="number"
+                  min="0" // Restringir valores negativos
                   value={formData.price}
                   onChange={handleChange}
                   placeholder="Precio"
                 />
                 <input
                   name="stock"
+                  type="number"
+                  min="0" // Restringir valores negativos
                   value={formData.stock}
                   onChange={handleChange}
                   placeholder="Stock"

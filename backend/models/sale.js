@@ -56,6 +56,7 @@ const Sale = {
     );
     return res.rows[0];
   },
+
   createSaleItems: async (saleId, saleItems) => {
     const queryText =
       "INSERT INTO sale_items (sale_id, product_id, quantity, price_at_time, subtotal) VALUES ($1, $2, $3, $4, $5) RETURNING *";
@@ -70,6 +71,34 @@ const Sale = {
       ]);
     }
   },
+
+  // Nueva función para guardar el arqueo de caja
+  saveCashRegister: async () => {
+    const today = new Date().toISOString().split("T")[0];
+    const res = await db.query(
+      `SELECT 
+          SUM(CASE WHEN payment_method = 'efectivo' THEN total_amount ELSE 0 END) AS total_cash,
+          SUM(CASE WHEN payment_method = 'tarjeta_debito' OR payment_method = 'tarjeta_credito' THEN total_amount ELSE 0 END) AS total_card,
+          SUM(CASE WHEN payment_method = 'transferencia' THEN total_amount ELSE 0 END) AS total_transfer,
+          SUM(total_amount) AS total_sales
+       FROM sales
+       WHERE DATE(created_at) = $1`,
+      [today]
+    );
+    const { total_cash, total_card, total_transfer, total_sales } = res.rows[0];
+
+    await db.query(
+      `INSERT INTO cash_register (date, total_cash, total_card, total_transfer, total_sales)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (date)
+       DO UPDATE SET total_cash = EXCLUDED.total_cash,
+                     total_card = EXCLUDED.total_card,
+                     total_transfer = EXCLUDED.total_transfer,
+                     total_sales = EXCLUDED.total_sales`,
+      [today, total_cash, total_card, total_transfer, total_sales]
+    );
+  },
+
   getDailyTotal: async () => {
     const today = new Date();
     const startDate = today.toISOString().split("T")[0]; // Obtener fecha actual en formato YYYY-MM-DD
@@ -79,17 +108,19 @@ const Sale = {
     );
     return res.rows[0].total_daily || 0; // Retornar 0 si no hay ventas
   },
+
   getTopSellingProducts: async () => {
     const res = await db.query(`
-            SELECT si.product_id, p.name, SUM(si.quantity) AS total_quantity
-            FROM sale_items si
-            JOIN products p ON si.product_id = p.id
-            GROUP BY si.product_id, p.name
-            ORDER BY total_quantity DESC
-            LIMIT 10
-        `);
+        SELECT si.product_id, p.name, SUM(si.quantity) AS total_quantity
+        FROM sale_items si
+        JOIN products p ON si.product_id = p.id
+        GROUP BY si.product_id, p.name
+        ORDER BY total_quantity DESC
+        LIMIT 10
+      `);
     return res.rows;
   },
+
   saveDailyTotal: async (total) => {
     const today = new Date().toISOString().split("T")[0];
     await db.query(
@@ -121,6 +152,17 @@ const Sale = {
     );
     return res.rows;
   },
+  getDailyTotalsByPaymentMethod: async (date) => {
+    const res = await db.query(
+        `SELECT payment_method, SUM(total_amount) AS total_amount
+         FROM sales
+         WHERE DATE(created_at) = $1
+         GROUP BY payment_method`,
+        [date]
+    );
+    return res.rows;
+},
+
 };
 
 module.exports = Sale;

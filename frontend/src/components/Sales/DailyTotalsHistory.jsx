@@ -1,30 +1,36 @@
 import React, { useState, useEffect } from "react";
+import { format } from "date-fns";
 import api from "../../api";
 
 const DailyTotalsHistory = () => {
   const [history, setHistory] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [productsSold, setProductsSold] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
 
+  // Obtener el historial de ventas diarias
   useEffect(() => {
-    // Obtener el historial de totales diarios
     api
       .get("/sales/daily_totals_history")
       .then((response) => setHistory(response.data))
-      .catch((error) =>
-        console.error("Error al obtener el historial de totales diarios:", error)
-      );
+      .catch((error) => console.error("Error al obtener el historial:", error));
   }, []);
 
+  // Manejar la selección de una fecha para mostrar detalles
   const handleShowProducts = (date) => {
     setSelectedDate(date);
-    // Obtener productos vendidos en la fecha seleccionada
+
+    // Obtener los productos vendidos en la fecha seleccionada
     api
       .get(`/sales/products_sold?date=${date}`)
       .then((response) => setProductsSold(response.data))
-      .catch((error) =>
-        console.error("Error al obtener los productos vendidos:", error)
-      );
+      .catch((error) => console.error("Error al obtener productos:", error));
+
+    // Obtener el desglose de medios de pago en la fecha seleccionada
+    api
+      .get(`/sales/daily_totals_by_payment_method?date=${date}`)
+      .then((response) => setPaymentMethods(response.data))
+      .catch((error) => console.error("Error al obtener medios de pago:", error));
   };
 
   return (
@@ -41,7 +47,7 @@ const DailyTotalsHistory = () => {
         <tbody>
           {history.map((entry) => (
             <tr key={entry.date}>
-              <td>{entry.date}</td>
+              <td>{format(new Date(entry.date), "dd/MM/yyyy")}</td>
               <td>${entry.total}</td>
               <td>
                 <button onClick={() => handleShowProducts(entry.date)}>
@@ -55,7 +61,7 @@ const DailyTotalsHistory = () => {
 
       {selectedDate && (
         <div>
-          <h3>Productos vendidos el {selectedDate}</h3>
+          <h3>Productos vendidos el {format(new Date(selectedDate), "dd/MM/yyyy")}</h3>
           {productsSold.length > 0 ? (
             <ul>
               {productsSold.map((product) => (
@@ -66,6 +72,19 @@ const DailyTotalsHistory = () => {
             </ul>
           ) : (
             <p>No hay productos vendidos en esta fecha.</p>
+          )}
+
+          <h3>Desglose por Medio de Pago</h3>
+          {paymentMethods.length > 0 ? (
+            <ul>
+              {paymentMethods.map((method) => (
+                <li key={method.payment_method}>
+                  {method.payment_method} - Total: ${method.total_amount}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No hay información de medios de pago para esta fecha.</p>
           )}
         </div>
       )}
