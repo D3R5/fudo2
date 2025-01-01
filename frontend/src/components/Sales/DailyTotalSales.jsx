@@ -1,19 +1,13 @@
-// src/components/Sales/DailyTotalSales.js
-import React, { useEffect, useState } from "react";
-import api from "../../api";
+import React, { useEffect } from "react";
+import useSalesStore from "../../stores/salesStore";
 import "./css/DailyTotalSales.css";
 
 const DailyTotalSales = () => {
-  const [dailyTotal, setDailyTotal] = useState(null);
+  const { dailyTotal, fetchDailyTotal } = useSalesStore();
 
   useEffect(() => {
-    api
-      .get("/sales/daily_total")
-      .then((response) => setDailyTotal(response.data.total_daily))
-      .catch((error) =>
-        console.error("Error al obtener total diario de ventas:", error)
-      );
-  }, []);
+    fetchDailyTotal();
+  }, [fetchDailyTotal]);
 
   return (
     <div>

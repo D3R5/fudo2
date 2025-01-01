@@ -1,0 +1,71 @@
+.product-form-container {
+    background-color: #f7ebe8;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .product-form-title {
+    text-align: center;
+    color: #8b4513;
+    font-family: "Playfair Display", serif;
+  }
+  
+  .product-form-group {
+    margin-bottom: 15px;
+  }
+  
+  .product-form-label {
+    font-weight: bold;
+    color: #5a3d31;
+  }
+  
+  .product-form-input,
+  .product-form-textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .product-form-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .product-list-container {
+    padding: 20px;
+  }
+  
+  .product-list-title {
+    text-align: center;
+    color: #8b4513;
+    margin-bottom: 20px;
+  }
+  
+  .product-list-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .product-card {
+    background-color: #fdf7f3;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    flex: 1 1 calc(33.333% - 20px);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .product-card-title {
+    color: #8b4513;
+  }
+  
+  .product-card-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+  }
+  

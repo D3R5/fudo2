@@ -68,3 +68,5 @@ CREATE TABLE cash_register (
 CREATE INDEX idx_sales_created_at ON sales(created_at);
 CREATE INDEX idx_sale_items_sale_id ON sale_items(sale_id);
 CREATE INDEX idx_sale_items_product_id ON sale_items(product_id);
+
+ALTER TABLE sales ADD COLUMN discount_percentage DECIMAL(5,2) DEFAULT 0 CHECK (discount_percentage >= 0 AND discount_percentage <= 100);

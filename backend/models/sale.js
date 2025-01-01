@@ -49,14 +49,23 @@ const Sale = {
   },
 
   create: async (sale) => {
-    const { total_amount, payment_method } = sale;
-    const res = await db.query(
-      "INSERT INTO sales (total_amount, payment_method) VALUES ($1, $2) RETURNING *",
-      [total_amount, payment_method]
-    );
-    return res.rows[0];
-  },
+    const { total_amount, payment_method, discount_percentage = 0 } = sale;
 
+  // Calcular descuento
+  const discount_amount = total_amount * (discount_percentage / 100);
+  const discounted_total = total_amount - discount_amount;
+
+  // Guardar la venta
+  const res = await db.query(
+    `INSERT INTO sales (total_amount, payment_method, discount_percentage, discount_amount) 
+     VALUES ($1, $2, $3, $4) RETURNING *`,
+    [discounted_total, payment_method, discount_percentage, discount_amount]
+  );
+
+  return res.rows[0];
+  },
+  
+  
   createSaleItems: async (saleId, saleItems) => {
     const queryText =
       "INSERT INTO sale_items (sale_id, product_id, quantity, price_at_time, subtotal) VALUES ($1, $2, $3, $4, $5) RETURNING *";
@@ -100,13 +109,12 @@ const Sale = {
   },
 
   getDailyTotal: async () => {
-    const today = new Date();
-    const startDate = today.toISOString().split("T")[0]; // Obtener fecha actual en formato YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0];
     const res = await db.query(
-      "SELECT SUM(total_amount) AS total_daily FROM sales WHERE DATE(created_at) = $1",
-      [startDate]
+      `SELECT SUM(total_amount) AS total_daily FROM sales WHERE DATE(created_at) = $1`,
+      [today]
     );
-    return res.rows[0].total_daily || 0; // Retornar 0 si no hay ventas
+    return res.rows[0].total_daily || 0;
   },
 
   getTopSellingProducts: async () => {

@@ -1,16 +1,11 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api";
-import "./css/ProductList.css";
+import ProductForm from "./ProductForm";
+import "./css/ProductStyle.css";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    stock: "",
-    description: "",
-  });
 
   useEffect(() => {
     fetchProducts();
@@ -23,113 +18,63 @@ const ProductList = () => {
       .catch((error) => console.error("Error al obtener productos:", error));
   };
 
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm(
-      "¿Estás seguro de que quieres eliminar este producto?"
-    );
-    if (confirmDelete) {
-      api
-        .delete(`/products/${id}`)
-        .then(() => {
-          setProducts(products.filter((product) => product.id !== id));
-        })
-        .catch((error) => console.error("Error al eliminar producto:", error));
-    }
-  };
-
   const handleEdit = (product) => {
-    setEditingProduct(product.id);
-    setFormData({
-      name: product.name,
-      price: product.price,
-      stock: product.stock,
-      description: product.description,
-    });
+    setEditingProduct(product);
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSave = () => {
-    const { price, stock } = formData;
-
-    // Validación: precio y stock deben ser positivos
-    if (price < 0 || stock < 0) {
-      alert("El precio y el stock deben ser valores positivos.");
-      return;
+  const handleDelete = (id) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este producto?")) {
+      api.delete(`/products/${id}`).then(() => {
+        setProducts(products.filter((p) => p.id !== id));
+        alert("Producto eliminado con éxito.");
+      });
     }
+  };
 
-    api
-      .put(`/products/${editingProduct}`, formData)
-      .then(() => {
-        fetchProducts();
-        setEditingProduct(null);
-        setFormData({ name: "", price: "", stock: "", description: "" });
-      })
-      .catch((error) => console.error("Error al actualizar producto:", error));
+  const handleSuccess = () => {
+    fetchProducts();
+    setEditingProduct(null);
   };
 
   return (
-    <div>
-      <h2>Lista de Productos</h2>
-      <ul>
-        {products.map((product) => (
-          <li key={product.id}>
-            {editingProduct === product.id ? (
-              <div>
-                <input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Nombre"
-                />
-                <input
-                  name="price"
-                  type="number"
-                  min="0" // Restringir valores negativos
-                  value={formData.price}
-                  onChange={handleChange}
-                  placeholder="Precio"
-                />
-                <input
-                  name="stock"
-                  type="number"
-                  min="0" // Restringir valores negativos
-                  value={formData.stock}
-                  onChange={handleChange}
-                  placeholder="Stock"
-                />
-                <input
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Descripción"
-                />
-                <button onClick={handleSave}>Guardar</button>
-                <button onClick={() => setEditingProduct(null)}>
-                  Cancelar
-                </button>
+    <div className="product-list-container">
+      <h1 className="product-list-title">Lista de Productos</h1>
+      {editingProduct ? (
+        <ProductForm product={editingProduct} onSuccess={handleSuccess} />
+      ) : (
+        <div className="product-list-grid">
+          {products.map((product) => (
+            <div key={product.id} className="product-card">
+              <div className="product-card-body">
+                <h5 className="product-card-title">{product.name}</h5>
+                <p className="product-card-text">
+                  <strong>Precio:</strong> ${product.price}
+                </p>
+                <p className="product-card-text">
+                  <strong>Stock:</strong> {product.stock}
+                </p>
+                <p className="product-card-text">
+                  <strong>Descripción:</strong> {product.description || "Sin descripción"}
+                </p>
               </div>
-            ) : (
-              <div>
-                {product.name} - ${product.price} - Stock: {product.stock}
-                &nbsp;&nbsp;
+              <div className="product-card-footer">
                 <button
+                  className="product-card-btn btn btn-primary"
                   onClick={() => handleEdit(product)}
-                  className="button-edit"
                 >
                   Editar
                 </button>
-                &nbsp;&nbsp;
-                <button onClick={() => handleDelete(product.id)}>
+                <button
+                  className="product-card-btn btn btn-danger"
+                  onClick={() => handleDelete(product.id)}
+                >
                   Eliminar
                 </button>
               </div>
-            )}
-          </li>
-        ))}
-      </ul>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

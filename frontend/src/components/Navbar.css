@@ -1,73 +1,59 @@
-/* General Navbar */
-.navbar {
-    background-color: #4b2e2e; /* Café oscuro */
-    color: #f4e1d2; /* Color crema */
-    display: flex;
-    flex-direction: column; /* Organización vertical */
-    align-items: center; /* Centra todo horizontalmente */
-    padding: 1rem;
-    font-family: 'Arial', sans-serif;
-    gap: 2rem; /* Espaciado entre el título y las secciones */
-  }
-  
-  /* Título principal */
-  .navbar-logo {
-    font-size: 1.8rem;
-    font-weight: bold;
-    text-align: center;
-  }
-  
-  .navbar-logo a {
-    text-decoration: none;
-    color: #f4e1d2;
-  }
-  
-  /* Secciones (Productos, Ventas) */
-  .navbar-section {
-    text-align: center;
-    width: 100%; /* Asegura que los enlaces se centren en su contenedor */
-  }
-  
-  .navbar-section strong {
-    display: block;
-    margin-bottom: 0.5rem; /* Espaciado entre el título y los enlaces */
-    color: #dcb89b; /* Tono dorado */
-    font-size: 1.2rem;
-  }
-  
-  /* Enlaces en fila */
-  .navbar-section a {
-    text-decoration: none;
-    color: #f4e1d2;
-    font-size: 1rem;
-    margin: 0 1rem; /* Espaciado horizontal entre enlaces */
-    transition: color 0.3s ease;
-  }
-  
-  .navbar-section a:hover {
-    color: #dcb89b; /* Resalta en dorado */
-  }
-  
-  /* Organización de enlaces en fila */
-  .navbar-section .navbar-links-row {
-    display: flex;
-    justify-content: center; /* Centra los enlaces horizontalmente */
-    gap: 1rem; /* Espaciado entre enlaces */
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .navbar {
-      padding: 1rem;
-    }
-  
-    .navbar-section strong {
-      font-size: 1rem;
-    }
-  
-    .navbar-section a {
-      font-size: 0.9rem;
-      margin: 0 0.5rem; /* Reduce el espaciado en pantallas pequeñas */
-    }
-  }
-  
+/* Fondo de la barra de navegación */
+.bg-cafeteria {
+  background: linear-gradient(90deg, #8b4513, #d19a66); /* Marrón y terracota */
+  color: #fff;
+}
+
+/* Texto del logo */
+.text-brand {
+  color: #f4e4d4; /* Beige cálido */
+  font-size: 1.5rem;
+}
+
+/* Estilo general de los enlaces */
+.navbar-light .nav-link {
+  color: #f4e4d4; /* Beige claro */
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Hover para los enlaces */
+.navbar-light .nav-link:hover {
+  color: #ffc107; /* Dorado cálido */
+}
+
+/* Menú desplegable */
+.dropdown-menu {
+  background-color: #fff6e1; /* Beige claro */
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  color: #8b4513; /* Marrón chocolate */
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #ffc107; /* Dorado cálido */
+  color: #fff;
+  border-radius: 5px;
+}
+
+/* Logo */
+.navbar-brand img {
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+/* Botón de hamburguesa */
+.navbar-toggler {
+  border: none;
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(255, 255, 255, 0.5)' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}

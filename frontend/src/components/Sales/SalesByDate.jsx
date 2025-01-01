@@ -1,26 +1,21 @@
 // src/components/Sales/SalesByDate.js
 import React, { useState } from "react";
-import api from "../../api";
+import useSalesStore from "../../stores/salesStore";
 
 const SalesByDate = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [sales, setSales] = useState([]);
+  const { salesByDate, fetchSalesByDate } = useSalesStore();
 
   const handleSearch = () => {
-    // Convertir las fechas al formato YYYY-MM-DD
-    const formatDate = (date) => {
-      const [year, month, day] = date.split("-");
-      return `${year}-${month}-${day}`;
-    };
+    // Asegúrate de que ambas fechas estén seleccionadas
+    if (!startDate || !endDate) {
+      alert("Por favor, selecciona ambas fechas.");
+      return;
+    }
 
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-
-    api
-      .get(`/sales?startDate=${formattedStartDate}&endDate=${formattedEndDate}`)
-      .then((response) => setSales(response.data))
-      .catch((error) => console.error("Error al obtener ventas:", error));
+    // Llama al método del store para obtener las ventas por rango de fechas
+    fetchSalesByDate(startDate, endDate);
   };
 
   return (
@@ -41,12 +36,16 @@ const SalesByDate = () => {
       <button onClick={handleSearch}>Buscar</button>
 
       <ul>
-        {sales.map((sale) => (
-          <li key={sale.id}>
-            ID Venta: {sale.id} - Monto Total: ${sale.total_amount} - Método de
-            Pago: {sale.payment_method}
-          </li>
-        ))}
+        {salesByDate.length > 0 ? (
+          salesByDate.map((sale) => (
+            <li key={sale.id}>
+              ID Venta: {sale.id} - Monto Total: ${sale.total_amount} - Método
+              de Pago: {sale.payment_method}
+            </li>
+          ))
+        ) : (
+          <p>No hay ventas en el rango de fechas seleccionado.</p>
+        )}
       </ul>
     </div>
   );

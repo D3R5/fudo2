@@ -15,22 +15,21 @@ const getAllSales = async (req, res) => {
 
 const createSale = async (req, res) => {
   const saleData = req.body;
+
   try {
-    // Validar que el precio ingresado sea el correcto para cada producto
-    for (const item of saleData.items) {
+    const { items, discount_percentage = 0 } = saleData;
+
+    // Validar productos y precios
+    for (const item of items) {
       const product = await Product.getById(item.product_id);
       if (!product || product.stock < item.quantity) {
         return res.status(400).json({
-          error: `Stock insuficiente para el producto: ${
-            product ? product.name : "ID " + item.product_id
-          }`,
+          error: `Stock insuficiente para el producto: ${product?.name || "ID " + item.product_id}`,
         });
       }
 
-      // Convertir los precios a enteros multiplicando por 100 y compararlos
       const enteredPrice = Math.round(item.price_at_time * 100);
       const actualPrice = Math.round(product.price * 100);
-
       if (enteredPrice !== actualPrice) {
         return res.status(400).json({
           error: `Precio incorrecto para el producto: ${product.name}`,
@@ -38,12 +37,23 @@ const createSale = async (req, res) => {
       }
     }
 
-    // Proceder a crear la venta y actualizar el stock si todo es válido
-    const newSale = await Sale.create(saleData);
-    await Sale.createSaleItems(newSale.id, saleData.items);
+    // Calcular el monto total con descuento
+    const total_amount = items.reduce((acc, item) => acc + item.subtotal, 0);
+    const discounted_total = total_amount * ((100 - discount_percentage) / 100);
 
+    // Crear la venta y guardar el descuento
+    const newSale = await Sale.create({
+      total_amount,
+      payment_method: saleData.payment_method,
+      discount_percentage,
+    });
+
+    // Crear los elementos de la venta
+    await Sale.createSaleItems(newSale.id, items);
+
+    // Actualizar stock
     const updatedItems = [];
-    for (const item of saleData.items) {
+    for (const item of items) {
       await Product.updateStock(item.product_id, item.quantity);
       const updatedProduct = await Product.getById(item.product_id);
       updatedItems.push({
@@ -55,13 +65,15 @@ const createSale = async (req, res) => {
 
     res.status(201).json({
       ...newSale,
-      items: updatedItems,
+      discounted_total,
+      updatedItems,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al crear la venta" });
   }
 };
+
 
 
 

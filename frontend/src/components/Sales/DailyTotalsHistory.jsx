@@ -1,36 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { format } from "date-fns";
-import api from "../../api";
+import useSalesStore from "../../stores/salesStore";
 
 const DailyTotalsHistory = () => {
-  const [history, setHistory] = useState([]);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [productsSold, setProductsSold] = useState([]);
-  const [paymentMethods, setPaymentMethods] = useState([]);
+  const {
+    history,
+    selectedDate,
+    productsSold,
+    paymentMethods,
+    fetchHistory,
+    fetchDetailsByDate,
+    syncState, // Método de sincronización
+  } = useSalesStore();
 
-  // Obtener el historial de ventas diarias
   useEffect(() => {
-    api
-      .get("/sales/daily_totals_history")
-      .then((response) => setHistory(response.data))
-      .catch((error) => console.error("Error al obtener el historial:", error));
-  }, []);
+    syncState(); // Sincroniza los datos al montar
+  }, [syncState]);
 
-  // Manejar la selección de una fecha para mostrar detalles
   const handleShowProducts = (date) => {
-    setSelectedDate(date);
-
-    // Obtener los productos vendidos en la fecha seleccionada
-    api
-      .get(`/sales/products_sold?date=${date}`)
-      .then((response) => setProductsSold(response.data))
-      .catch((error) => console.error("Error al obtener productos:", error));
-
-    // Obtener el desglose de medios de pago en la fecha seleccionada
-    api
-      .get(`/sales/daily_totals_by_payment_method?date=${date}`)
-      .then((response) => setPaymentMethods(response.data))
-      .catch((error) => console.error("Error al obtener medios de pago:", error));
+    fetchDetailsByDate(date);
   };
 
   return (

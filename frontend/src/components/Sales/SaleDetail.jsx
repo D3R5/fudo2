@@ -21,8 +21,18 @@ const SaleDetail = () => {
     <div>
       <h2>Detalles de la Venta #{sale.id}</h2>
       <p>
-        <strong>Total de la venta:</strong> ${sale.total_amount}
+        <strong>Total de la venta:</strong> ${Number(sale.total_amount).toFixed(2)}
       </p>
+      {sale.discount_percentage > 0 && (
+        <p>
+          <strong>Descuento Aplicado:</strong> {sale.discount_percentage}% ($
+          {(
+            Number(sale.total_amount) /
+            (1 - sale.discount_percentage / 100)
+          ).toFixed(2)}{" "}
+          sin descuento)
+        </p>
+      )}
       <p>
         <strong>Método de pago:</strong> {sale.payment_method}
       </p>
@@ -42,10 +52,10 @@ const SaleDetail = () => {
               <strong>Cantidad vendida:</strong> {item.quantity}
             </p>
             <p>
-              <strong>Precio en la venta:</strong> ${item.price_at_time}
+              <strong>Precio en la venta:</strong> ${Number(item.price_at_time).toFixed(2)}
             </p>
             <p>
-              <strong>Subtotal:</strong> ${item.subtotal}
+              <strong>Subtotal:</strong> ${Number(item.subtotal).toFixed(2)}
             </p>
           </li>
         ))}

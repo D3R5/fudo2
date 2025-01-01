@@ -1,16 +1,13 @@
-// src/components/Products/ProductDetail.js
-import React, { useState, useEffect } from "react";
-import api from "../../api";
+import React, { useEffect } from 'react';
+import useProductStore from '../../stores/productStore';
 
 const ProductDetail = ({ id }) => {
-  const [product, setProduct] = useState(null);
+  const { products, fetchProducts } = useProductStore();
+  const product = products.find((p) => p.id === id);
 
   useEffect(() => {
-    api
-      .get(`/products/${id}`)
-      .then((response) => setProduct(response.data))
-      .catch((error) => console.error("Error al obtener el producto:", error));
-  }, [id]);
+    if (!product) fetchProducts();
+  }, [fetchProducts, product]);
 
   if (!product) return <p>Cargando...</p>;
 
