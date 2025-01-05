@@ -6,7 +6,7 @@ const SaleForm = ({ onSaleCreated }) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("efectivo");
   const [items, setItems] = useState([
-    { product_id: "", quantity: 0, price_at_time: 0 },
+    { product_id: "", quantity: "", price_at_time: "" },
   ]);
   const [products, setProducts] = useState([]);
   const [discountPercentage, setDiscountPercentage] = useState(0);
@@ -17,30 +17,15 @@ const SaleForm = ({ onSaleCreated }) => {
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/products")
-      .then((response) => {
-        setProducts(response.data);
-      })
+      .then((response) => setProducts(response.data))
       .catch((error) => console.error(error));
   }, []);
-
-  // Update item prices and total when products or payment method changes
-  useEffect(() => {
-    setItems((prevItems) =>
-      prevItems.map((item) => {
-        const product = products.find((p) => p.id === item.product_id);
-        if (!product) return item;
-
-        const price = paymentMethod === "efectivo" ? product.cash_price || product.price : product.price;
-        return { ...item, price_at_time: price };
-      })
-    );
-  }, [paymentMethod, products]);
 
   // Calculate total amount with discount
   useEffect(() => {
     const subtotal = items.reduce((sum, item) => {
       const price = parseFloat(item.price_at_time) || 0;
-      return sum + price * (item.quantity || 0);
+      return sum + price * item.quantity;
     }, 0);
 
     setTotalAmount(subtotal * (1 - discountPercentage / 100));
@@ -48,11 +33,23 @@ const SaleForm = ({ onSaleCreated }) => {
 
   // Calculate remaining amount when paid amount changes
   useEffect(() => {
-    setRemainingAmount(amountPaid - totalAmount);
+    setRemainingAmount(Math.max(amountPaid - totalAmount));
   }, [amountPaid, totalAmount]);
 
+  // Update item prices when payment method changes
+  useEffect(() => {
+    if (paymentMethod !== "efectivo") {
+      setItems((prevItems) =>
+        prevItems.map((item) => {
+          const product = products.find((p) => p.id === item.product_id);
+          return product ? { ...item, price_at_time: product.price } : item;
+        })
+      );
+    }
+  }, [paymentMethod, products]);
+
   const addItem = () => {
-    setItems([...items, { product_id: "", quantity: 0, price_at_time: 0 }]);
+    setItems([...items, { product_id: "", quantity: "", price_at_time: "" }]);
   };
 
   const removeItem = (index) => {
@@ -63,20 +60,23 @@ const SaleForm = ({ onSaleCreated }) => {
 
   const handleItemChange = (index, field, value) => {
     const newItems = [...items];
-    newItems[index][field] = field === "quantity" ? parseInt(value) || 0 : value;
+    newItems[index][field] =
+      field === "price_at_time"
+        ? parseFloat(value) || ""
+        : parseInt(value) || 0;
 
-    if (field === "product_id") {
+    if (field === "product_id" && paymentMethod !== "efectivo") {
       const selectedProduct = products.find((product) => product.id === value);
-      if (selectedProduct) {
-        const price = paymentMethod === "efectivo" ? selectedProduct.cash_price || selectedProduct.price : selectedProduct.price;
-        newItems[index].price_at_time = price;
-      }
+      newItems[index].price_at_time = selectedProduct
+        ? selectedProduct.price
+        : 0;
     }
 
     setItems(newItems);
   };
 
-  const handleDiscountChange = (e) => setDiscountPercentage(parseFloat(e.target.value) || 0);
+  const handleDiscountChange = (e) =>
+    setDiscountPercentage(parseFloat(e.target.value));
 
   const handleAmountPaidChange = (e) => {
     const value = parseFloat(e.target.value);
@@ -86,9 +86,18 @@ const SaleForm = ({ onSaleCreated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const validPaymentMethods = ["efectivo", "tarjeta_debito", "tarjeta_credito", "transferencia"];
+    const validPaymentMethods = [
+      "efectivo",
+      "tarjeta_debito",
+      "tarjeta_credito",
+      "transferencia",
+    ];
     if (!validPaymentMethods.includes(paymentMethod)) {
-      alert(`Método de pago inválido. Métodos válidos: ${validPaymentMethods.join(", ")}`);
+      alert(
+        `Método de pago inválido. Métodos válidos: ${validPaymentMethods.join(
+          ", "
+        )}`
+      );
       return;
     }
 
@@ -104,7 +113,10 @@ const SaleForm = ({ onSaleCreated }) => {
     };
 
     try {
-      const response = await axios.post("http://localhost:5000/api/sales", saleData);
+      const response = await axios.post(
+        "http://localhost:5000/api/sales",
+        saleData
+      );
       alert("Venta creada exitosamente");
       onSaleCreated(response.data);
     } catch (error) {
@@ -121,7 +133,9 @@ const SaleForm = ({ onSaleCreated }) => {
           <label>Producto:</label>
           <select
             value={item.product_id}
-            onChange={(e) => handleItemChange(index, "product_id", e.target.value)}
+            onChange={(e) =>
+              handleItemChange(index, "product_id", e.target.value)
+            }
           >
             <option value="">Seleccione un producto</option>
             {products.map((product) => (
@@ -133,13 +147,26 @@ const SaleForm = ({ onSaleCreated }) => {
           <button type="button" onClick={() => removeItem(index)}>
             Eliminar
           </button>
+          <label>Método de pago:</label>
+      <select
+        value={paymentMethod}
+        onChange={(e) => setPaymentMethod(e.target.value)}
+      >
+        <option value="efectivo">Efectivo</option>
+        <option value="tarjeta_debito">Tarjeta de Débito</option>
+        <option value="tarjeta_credito">Tarjeta de Crédito</option>
+        <option value="transferencia">Transferencia</option>
+      </select>
           <label>Cantidad:</label>
           <input
             type="number"
             min="0"
             placeholder="Cantidad de productos"
             value={item.quantity}
-            onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+            onChange={(e) =>
+              handleItemChange(index, "quantity", e.target.value)
+            }
+            required
           />
           <label>Precio:</label>
           <input
@@ -147,22 +174,25 @@ const SaleForm = ({ onSaleCreated }) => {
             min="0"
             placeholder="Precio del producto"
             value={item.price_at_time}
-            readOnly
+            onChange={(e) =>
+              handleItemChange(index, "price_at_time", e.target.value)
+            }
           />
         </div>
       ))}
       <button type="button" onClick={addItem}>
         Agregar Producto
       </button>
-      <label>Método de pago:</label>
-      <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-        <option value="efectivo">Efectivo</option>
-        <option value="tarjeta_debito">Tarjeta de Débito</option>
-        <option value="tarjeta_credito">Tarjeta de Crédito</option>
-        <option value="transferencia">Transferencia</option>
-      </select>
+      
       <label>Descuento (%):</label>
-      <input type="number" placeholder="Descuento" value={discountPercentage} onChange={handleDiscountChange} min="0" max="100" />
+      <input
+        type="number"
+        placeholder="Descuento"
+        value={discountPercentage}
+        onChange={handleDiscountChange}
+        min="0"
+        max="100"
+      />
       {paymentMethod === "efectivo" && (
         <div>
           <label>Monto Pagado:</label>
@@ -170,14 +200,21 @@ const SaleForm = ({ onSaleCreated }) => {
             type="number"
             placeholder="Monto Pagado"
             value={amountPaid}
-            onChange={(e) => handleAmountPaidChange}
+            onChange={handleAmountPaidChange}
             min="0"
           />
-          <p>Vuelto: ${!isNaN(remainingAmount) ? remainingAmount.toFixed(2) : 0}</p>
+          <p>
+            Vuelto: ${!isNaN(remainingAmount) ? remainingAmount.toFixed(2) : 0}
+          </p>
         </div>
       )}
       <label>Total de la venta:</label>
-      <input type="number" placeholder="Total de la venta" value={totalAmount} readOnly />
+      <input
+        type="number"
+        placeholder="Total de la venta"
+        value={totalAmount}
+        readOnly
+      />
       <button type="submit">Registrar Venta</button>
     </form>
   );
