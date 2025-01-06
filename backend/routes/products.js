@@ -6,11 +6,14 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
+  getFilteredAndSortedProducts,
 } = require("../controllers/products");
 
 const router = express.Router();
 
 router.get("/", getAllProducts);
+router.get("/filter", getFilteredAndSortedProducts); // Nueva ruta
+
 router.get("/:id", getProductById);
 router.post("/", createProduct);
 router.put("/:id", updateProduct);

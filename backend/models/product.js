@@ -40,6 +40,29 @@ const Product = {
     const res = await db.query("SELECT 1 FROM products WHERE name = $1", [name]);
     return res.rowCount > 0; // Devuelve true si existe, false si no
   },
+
+  getFilteredAndSorted: async (filters) => {
+    const { name, orderBy, orderDirection } = filters;
+
+    // Consulta dinámica basada en los filtros proporcionados
+    let query = "SELECT * FROM products WHERE 1=1";
+    const params = [];
+
+    if (name) {
+      query += " AND name ILIKE $1";
+      params.push(`%${name}%`);
+    }
+
+    if (orderBy && ["price", "name"].includes(orderBy)) {
+      query += ` ORDER BY ${orderBy}`;
+      if (orderDirection && ["asc", "desc"].includes(orderDirection.toLowerCase())) {
+        query += ` ${orderDirection.toUpperCase()}`;
+      }
+    }
+
+    const res = await db.query(query, params);
+    return res.rows;
+  },
 };
 
 module.exports = Product;

@@ -6,14 +6,18 @@ import "./css/ProductStyle.css";
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
+  const [orderDirection, setOrderDirection] = useState("asc"); // Estado para dirección de orden
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [orderDirection]); // Refetch cuando cambia la dirección de orden
 
-  const fetchProducts = () => {
+  const fetchProducts = (orderBy = "name", direction = orderDirection) => {
     api
-      .get("/products")
+      .get(`/products/filter`, {
+        params: { orderBy, orderDirection: direction },
+      })
       .then((response) => setProducts(response.data))
       .catch((error) => console.error("Error al obtener productos:", error));
   };
@@ -36,14 +40,36 @@ const ProductList = () => {
     setEditingProduct(null);
   };
 
+  // Filtrar productos según el término de búsqueda
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="product-list-container">
       <h1 className="product-list-title">Lista de Productos</h1>
+      <div className="product-list-controls">
+        <input
+          type="text"
+          className="product-search-input"
+          placeholder="Buscar producto..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <button
+          className="product-order-btn btn btn-secondary"
+          onClick={() =>
+            setOrderDirection((prev) => (prev === "asc" ? "desc" : "asc"))
+          }
+        >
+          Ordenar por Nombre ({orderDirection === "asc" ? "Asc" : "Desc"})
+        </button>
+      </div>
       {editingProduct ? (
         <ProductForm product={editingProduct} onSuccess={handleSuccess} />
       ) : (
         <div className="product-list-grid">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div key={product.id} className="product-card">
               <div className="product-card-body">
                 <h5 className="product-card-title">{product.name}</h5>

@@ -52,6 +52,19 @@ const deleteProduct = async (req, res) => {
   await Product.delete(req.params.id);
   res.status(204).send();
 };
+const getFilteredAndSortedProducts = async (req, res) => {
+  try {
+    const { name, orderBy, orderDirection } = req.query;
+
+    const filters = { name, orderBy, orderDirection };
+    const products = await Product.getFilteredAndSorted(filters);
+
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener los productos filtrados y ordenados." });
+  }
+};
+
 
 module.exports = {
   getAllProducts,
@@ -59,4 +72,5 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  getFilteredAndSortedProducts,
 };
