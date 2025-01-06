@@ -2,6 +2,141 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./css/SaleForm.css";
 
+const SaleItem = ({
+  index,
+  item,
+  products,
+  paymentMethod,
+  handleItemChange,
+  removeItem,
+}) => {
+  return (
+    <div className="mb-3">
+      <div className="row g-3 align-items-center">
+        <div className="col-md-4">
+          <label className="form-label">Producto:</label>
+          <select
+            className="form-select"
+            value={item.product_id}
+            onChange={(e) => handleItemChange(index, "product_id", e.target.value)}
+          >
+            <option value="">Seleccione un producto</option>
+            {products.map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name} - ${product.price}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="col-md-2">
+          <label className="form-label">Cantidad:</label>
+          <input
+            type="number"
+            className="form-control"
+            min="0"
+            placeholder="Cantidad"
+            value={item.quantity}
+            onChange={(e) => handleItemChange(index, "quantity", e.target.value)}
+            required
+          />
+        </div>
+        <div className="col-md-2">
+          <label className="form-label">Precio:</label>
+          <input
+            type="number"
+            className="form-control"
+            min="0"
+            placeholder="Precio"
+            value={item.price_at_time}
+            onChange={(e) => handleItemChange(index, "price_at_time", e.target.value)}
+          />
+        </div>
+        <div className="col-md-2 d-flex align-items-end">
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={() => removeItem(index)}
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PaymentDetails = ({
+  paymentMethod,
+  setPaymentMethod,
+  amountPaid,
+  remainingAmount,
+  handleAmountPaidChange,
+}) => {
+  return (
+    <div className="mb-3">
+      <label className="form-label">Método de pago:</label>
+      <select
+        className="form-select"
+        value={paymentMethod}
+        onChange={(e) => setPaymentMethod(e.target.value)}
+      >
+        <option value="efectivo">Efectivo</option>
+        <option value="tarjeta_debito">Tarjeta de Débito</option>
+        <option value="tarjeta_credito">Tarjeta de Crédito</option>
+        <option value="transferencia">Transferencia</option>
+      </select>
+      {paymentMethod === "efectivo" && (
+        <div className="mt-3">
+          <label className="form-label">Monto Pagado:</label>
+          <input
+            type="number"
+            className="form-control"
+            placeholder="Monto Pagado"
+            value={amountPaid}
+            onChange={handleAmountPaidChange}
+            min="0"
+          />
+          <p className="mt-2">
+            <strong>Vuelto:</strong> ${!isNaN(remainingAmount) ? remainingAmount.toFixed(2) : 0}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const DiscountInput = ({ discountPercentage, handleDiscountChange }) => {
+  return (
+    <div className="mb-3">
+      <label className="form-label">Descuento (%):</label>
+      <input
+        type="number"
+        className="form-control"
+        placeholder="Descuento"
+        value={discountPercentage}
+        onChange={handleDiscountChange}
+        min="0"
+        max="100"
+      />
+    </div>
+  );
+};
+
+const SaleSummary = ({ totalAmount }) => {
+  return (
+    <div className="mb-3">
+      <label className="form-label">Total de la venta:</label>
+      <input
+        type="number"
+        className="form-control"
+        placeholder="Total de la venta"
+        value={totalAmount}
+        readOnly
+      />
+    </div>
+  );
+};
+
 const SaleForm = ({ onSaleCreated }) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("efectivo");
@@ -13,7 +148,6 @@ const SaleForm = ({ onSaleCreated }) => {
   const [amountPaid, setAmountPaid] = useState(0);
   const [remainingAmount, setRemainingAmount] = useState(0);
 
-  // Fetch products on component mount
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/products")
@@ -21,7 +155,6 @@ const SaleForm = ({ onSaleCreated }) => {
       .catch((error) => console.error(error));
   }, []);
 
-  // Calculate total amount with discount
   useEffect(() => {
     const subtotal = items.reduce((sum, item) => {
       const price = parseFloat(item.price_at_time) || 0;
@@ -31,12 +164,10 @@ const SaleForm = ({ onSaleCreated }) => {
     setTotalAmount(subtotal * (1 - discountPercentage / 100));
   }, [items, discountPercentage]);
 
-  // Calculate remaining amount when paid amount changes
   useEffect(() => {
     setRemainingAmount(Math.max(amountPaid - totalAmount));
   }, [amountPaid, totalAmount]);
 
-  // Update item prices when payment method changes
   useEffect(() => {
     if (paymentMethod !== "efectivo") {
       setItems((prevItems) =>
@@ -94,9 +225,7 @@ const SaleForm = ({ onSaleCreated }) => {
     ];
     if (!validPaymentMethods.includes(paymentMethod)) {
       alert(
-        `Método de pago inválido. Métodos válidos: ${validPaymentMethods.join(
-          ", "
-        )}`
+        `Método de pago inválido. Métodos válidos: ${validPaymentMethods.join(", ")}`
       );
       return;
     }
@@ -126,98 +255,39 @@ const SaleForm = ({ onSaleCreated }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Registrar Nueva Venta</h2>
-      {items.map((item, index) => (
-        <div key={index}>
-          <label>Producto:</label>
-          <select
-            value={item.product_id}
-            onChange={(e) =>
-              handleItemChange(index, "product_id", e.target.value)
-            }
-          >
-            <option value="">Seleccione un producto</option>
-            {products.map((product) => (
-              <option key={product.id} value={product.id}>
-                {product.name} - ${product.price}
-              </option>
-            ))}
-          </select>
-          <button type="button" onClick={() => removeItem(index)}>
-            Eliminar
-          </button>
-          <label>Método de pago:</label>
-      <select
-        value={paymentMethod}
-        onChange={(e) => setPaymentMethod(e.target.value)}
-      >
-        <option value="efectivo">Efectivo</option>
-        <option value="tarjeta_debito">Tarjeta de Débito</option>
-        <option value="tarjeta_credito">Tarjeta de Crédito</option>
-        <option value="transferencia">Transferencia</option>
-      </select>
-          <label>Cantidad:</label>
-          <input
-            type="number"
-            min="0"
-            placeholder="Cantidad de productos"
-            value={item.quantity}
-            onChange={(e) =>
-              handleItemChange(index, "quantity", e.target.value)
-            }
-            required
-          />
-          <label>Precio:</label>
-          <input
-            type="number"
-            min="0"
-            placeholder="Precio del producto"
-            value={item.price_at_time}
-            onChange={(e) =>
-              handleItemChange(index, "price_at_time", e.target.value)
-            }
-          />
-        </div>
-      ))}
-      <button type="button" onClick={addItem}>
-        Agregar Producto
-      </button>
-      
-      <label>Descuento (%):</label>
-      <input
-        type="number"
-        placeholder="Descuento"
-        value={discountPercentage}
-        onChange={handleDiscountChange}
-        min="0"
-        max="100"
+    <form onSubmit={handleSubmit} className="container mt-5">
+    <h2 className="mb-4 text-center">Registrar Nueva Venta</h2>
+    {items.map((item, index) => (
+      <SaleItem
+        key={index}
+        index={index}
+        item={item}
+        products={products}
+        paymentMethod={paymentMethod}
+        handleItemChange={handleItemChange}
+        removeItem={removeItem}
       />
-      {paymentMethod === "efectivo" && (
-        <div>
-          <label>Monto Pagado:</label>
-          <input
-            type="number"
-            placeholder="Monto Pagado"
-            value={amountPaid}
-            onChange={handleAmountPaidChange}
-            min="0"
-          />
-          <p>
-            Vuelto: ${!isNaN(remainingAmount) ? remainingAmount.toFixed(2) : 0}
-          </p>
-        </div>
-      )}
-      <label>Total de la venta:</label>
-      <input
-        type="number"
-        placeholder="Total de la venta"
-        value={totalAmount}
-        readOnly
-      />
-      <button type="submit">Registrar Venta</button>
-    </form>
-  );
+    ))}
+    <button type="button" className="btn btn-primary mb-3" onClick={addItem}>
+      Agregar Producto
+    </button>
+    <DiscountInput
+      discountPercentage={discountPercentage}
+      handleDiscountChange={setDiscountPercentage}
+    />
+    <PaymentDetails
+      paymentMethod={paymentMethod}
+      setPaymentMethod={setPaymentMethod}
+      amountPaid={amountPaid}
+      remainingAmount={remainingAmount}
+      handleAmountPaidChange={setAmountPaid}
+    />
+    <SaleSummary totalAmount={totalAmount} />
+    <button type="submit" className="btn btn-success w-100">
+      Registrar Venta
+    </button>
+  </form>
+);
 };
 
 export default SaleForm;
